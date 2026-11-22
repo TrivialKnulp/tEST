@@ -1,0 +1,296 @@
+{
+  "name": "Aeneas-Formulare lernen v2 (Upload der Korrektur, Qdrant)",
+  "nodes": [
+    {
+      "id": "cd438349-3981-49e7-b6cf-f335109b2304",
+      "name": "Korrektur melden",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "formTitle": "Aeneas-Formulare: Korrektur melden (die KI lernt daraus)",
+        "formDescription": "Die in Aeneas korrigierte .stf hochladen (Aeneas: Formulare bearbeiten → Speichern unter) und den Pfad der von der KI erzeugten .stf angeben (steht im Bericht). Die KI lernt aus dem Unterschied; die korrigierte Fassung wird außerdem in Qdrant aufgenommen und steht künftig als Vorlage zur Verfügung.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Korrigierte STF-Datei",
+              "fieldType": "file",
+              "acceptFileTypes": ".stf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Pfad der von der KI erzeugten STF-Datei",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Name des Formulars (optional)",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "E-Mail für Benachrichtigung",
+              "fieldType": "email",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "webhookId": "7d0f216d-0d7d-4c74-ae46-83043d30611a"
+    },
+    {
+      "id": "681a95c0-74f6-4e7b-be2e-c0e3ffa161f1",
+      "name": "Konfiguration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        200
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "576312cd-43b0-4ab6-b42a-90e0e7bb7f34",
+              "name": "apiUrl",
+              "value": "http://IP-DES-PC-MIT-STFKIT-API:5077",
+              "type": "string"
+            },
+            {
+              "id": "975c00cf-aa0d-4f25-b6ea-028eb23f7662",
+              "name": "mailFrom",
+              "value": "ki@haneke.de",
+              "type": "string"
+            },
+            {
+              "id": "497179dc-87c0-4255-8710-e326cb0d6bb2",
+              "name": "generiert",
+              "value": "={{ $json['Pfad der von der KI erzeugten STF-Datei'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1ea0a1b3-5f84-4ded-be85-6fbbc5c00ca4",
+              "name": "name",
+              "value": "={{ $json['Name des Formulars (optional)'] || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "b28dca87-e1ef-4ef6-88ab-3b2a5ae0b3ef",
+              "name": "email",
+              "value": "={{ $json['E-Mail für Benachrichtigung'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "9f97de50-2646-4212-8318-c85831115749",
+      "name": "Lernen (StfKit)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.apiUrl + '/learn' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generatedStf: $('Konfiguration').first().json.generiert, correctedStf: $json.files[0].path, name: $('Konfiguration').first().json.name || null }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "bc0cb88a-3aaa-4dbc-8303-3263f881d938",
+      "name": "Bericht",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst cfg = $('Konfiguration').first().json;\nconst r = $('Lernen (StfKit)').first().json; const q = $json;\nconst esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));\nlet subject, h;\nif (r.ok !== true) {\n  subject = 'Aeneas-Formulare lernen: FEHLER';\n  h = `<p>Die Korrektur konnte nicht verarbeitet werden:</p><p><code>${esc(r.error?.message || r.error || JSON.stringify(r))}</code></p>`;\n} else {\n  const x = r.report, c = x.calibrationAfter;\n  subject = `Aeneas-Formulare lernen: ${x.slotsAdded} neue Feld-Zuordnungen, ${x.textPairs} Textpaare verglichen`;\n  h = `<p>Die KI hat aus der Korrektur von <b>${esc(x.form)}</b> gelernt.</p><ul>` +\n    `<li>Verglichene Textboxen: ${x.textPairs} (erzeugt ${x.generatedBoxes}, korrigiert ${x.correctedBoxes}); Linien/Rahmen: ${x.linePairs}</li>` +\n    `<li>Neue Zuordnungen „Feld-Beschriftung → Platzhalter“: <b>${x.slotsAdded}</b> (aktualisiert ${x.slotsUpdated})</li>` +\n    `<li>Neue Text-Ersetzungen mit Platzhaltern: <b>${x.rewritesAdded}</b>; reine Textkorrekturen nur protokolliert: ${x.textEditsLogged}</li>` +\n    `<li>Positionskorrektur: Text dx ${x.dxShift?.toFixed?.(2) ?? '–'} / dy ${x.dyShift?.toFixed?.(2) ?? '–'} mm → Kalibrierung jetzt Dx ${c.dx}, Dy ${c.dy} (Basis: ${c.corrections} Korrektur(en))</li></ul>`;\n  if (x.notes?.length) h += '<p>Hinweise:</p><ul>' + x.notes.map(n => `<li>${esc(n)}</li>`).join('') + '</ul>';\n  h += '<p>Das Gelernte wird bei der nächsten Erzeugung automatisch verwendet. Je mehr Korrekturen, desto verlässlicher.</p>';\n}\nh += q.ok === true ? `<p>Die korrigierte Fassung wurde in Qdrant aufgenommen (${q.added} Eintrag) und steht künftig als Vorlage zur Verfügung.</p>` : `<p>Aufnahme in Qdrant fehlgeschlagen: <code>${esc(q.error?.message || q.error || JSON.stringify(q))}</code></p>`;\nreturn { json: { subject, html: h, to: cfg.email, from: cfg.mailFrom } };\n"
+      }
+    },
+    {
+      "id": "2b734650-58a5-43a1-9aff-748d065042f6",
+      "name": "Mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        1680,
+        200
+      ],
+      "parameters": {
+        "fromEmail": "={{ $json.from }}",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "credentials": {
+        "smtp": {
+          "id": "SMTP_CREDENTIAL_ID",
+          "name": "SMTP Haneke"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $input.first();\nconst files = [];\nfor (const key of Object.keys(item.binary || {})) {\n  const b = item.binary[key];\n  const buf = await this.helpers.getBinaryDataBuffer(0, key);\n  files.push({ name: b.fileName || key, base64: buf.toString('base64') });\n}\nif (!files.length) throw new Error('Bitte mindestens eine Datei hochladen.');\nreturn [{ json: { ...item.json, files } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        200
+      ],
+      "id": "e183e0d3-545d-4e7f-8cc6-e94dc58f7672",
+      "name": "Dateien kodieren"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.apiUrl + '/upload' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ files: $json.files }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        200
+      ],
+      "id": "3c335f20-b2e3-4187-9469-8d96d5694152",
+      "name": "Hochladen"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Konfiguration').first().json.apiUrl + '/corpus/add' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ dir: $('Hochladen').first().json.dir }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        200
+      ],
+      "id": "798616ee-0bb4-4060-9a5f-014bcb1af183",
+      "name": "In Qdrant aufnehmen"
+    }
+  ],
+  "connections": {
+    "Korrektur melden": {
+      "main": [
+        [
+          {
+            "node": "Dateien kodieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dateien kodieren": {
+      "main": [
+        [
+          {
+            "node": "Konfiguration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konfiguration": {
+      "main": [
+        [
+          {
+            "node": "Hochladen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hochladen": {
+      "main": [
+        [
+          {
+            "node": "Lernen (StfKit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lernen (StfKit)": {
+      "main": [
+        [
+          {
+            "node": "In Qdrant aufnehmen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "In Qdrant aufnehmen": {
+      "main": [
+        [
+          {
+            "node": "Bericht",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bericht": {
+      "main": [
+        [
+          {
+            "node": "Mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "494fabb2-de29-497a-89fe-ed0e4cba0477"
+}

@@ -1,0 +1,35 @@
+{
+  "_hinweis": "Rollen nach der Mail von Herrn Haneke: 'Aeneas' = aktuelle Formulare, 'A - im Echtbetrieb' = etwas ältere. Priority: kleiner = vertrauenswürdiger. CurrentHint = Ordner gilt als Hinweis auf den aktuellen Stand. 'A - im Echtbetrieb' liegt UNTER 'Aeneas': gleiche Dateien erscheinen in beiden Quellen (als Duplikat erkannt, Kopie mit kleinster Priority gewinnt). Rollen bitte von Herrn Haneke bestätigen lassen. Der große Ordner enthält überwiegend Kundenunterlagen mit personenbezogenen Daten: dort nur .stf lesen.",
+  "Sources": [
+    {
+      "Name": "Firebird",
+      "Path": "T:\\Kseniia Umrykhina\\ki\\Formular\\db-export",
+      "Kind": "Firebird-Export",
+      "Priority": 1
+    },
+    {
+      "Name": "Echtbetrieb",
+      "Path": "T:\\Kseniia Umrykhina\\ki\\Formular\\A - im Echtbetrieb",
+      "Kind": "Verzeichnis",
+      "Priority": 2,
+      "Extensions": [
+        ".stf",
+        ".docx"
+      ]
+    },
+    {
+      "Name": "AENEAS",
+      "Path": "T:\\Kseniia Umrykhina\\ki\\Formular\\Aeneas",
+      "Kind": "Verzeichnis",
+      "Priority": 0,
+      "Extensions": [
+        ".stf"
+      ],
+      "CurrentHint": true
+    }
+  ],
+  "Extensions": [
+    ".stf"
+  ],
+  "ExcludeDirs": []
+}

@@ -1,0 +1,210 @@
+{
+  "name": "Aeneas-Formulare lernen (Korrekturen)",
+  "nodes": [
+    {
+      "id": "cd438349-3981-49e7-b6cf-f335109b2304",
+      "name": "Korrektur melden",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "formTitle": "Aeneas-Formulare: Korrektur melden (die KI lernt daraus)",
+        "formDescription": "Pfad der von der KI erzeugten .stf und der danach in Aeneas korrigierten .stf (Aeneas: Formulare bearbeiten → Speichern unter). Beide Dateien müssen unter den erlaubten Verzeichnissen des Dienstes liegen.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Von der KI erzeugte Datei (.stf)",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Korrigierte Datei (.stf)",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Name des Formulars (optional)",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "E-Mail für Benachrichtigung",
+              "fieldType": "email",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "webhookId": "fa01d348-c8b0-4731-9fdf-ab7df5eaddcd"
+    },
+    {
+      "id": "681a95c0-74f6-4e7b-be2e-c0e3ffa161f1",
+      "name": "Konfiguration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        240,
+        200
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "576312cd-43b0-4ab6-b42a-90e0e7bb7f34",
+              "name": "apiUrl",
+              "value": "http://localhost:5077",
+              "type": "string"
+            },
+            {
+              "id": "975c00cf-aa0d-4f25-b6ea-028eb23f7662",
+              "name": "mailFrom",
+              "value": "ki@haneke.de",
+              "type": "string"
+            },
+            {
+              "id": "497179dc-87c0-4255-8710-e326cb0d6bb2",
+              "name": "generiert",
+              "value": "={{ $json['Von der KI erzeugte Datei (.stf)'] }}",
+              "type": "string"
+            },
+            {
+              "id": "fe313566-f6ae-4d05-b5d7-b13664545b93",
+              "name": "korrigiert",
+              "value": "={{ $json['Korrigierte Datei (.stf)'] }}",
+              "type": "string"
+            },
+            {
+              "id": "1ea0a1b3-5f84-4ded-be85-6fbbc5c00ca4",
+              "name": "name",
+              "value": "={{ $json['Name des Formulars (optional)'] || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "b28dca87-e1ef-4ef6-88ab-3b2a5ae0b3ef",
+              "name": "email",
+              "value": "={{ $json['E-Mail für Benachrichtigung'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": false,
+        "options": {}
+      }
+    },
+    {
+      "id": "9f97de50-2646-4212-8318-c85831115749",
+      "name": "Lernen (StfKit)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $json.apiUrl + '/learn' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ generatedStf: $json.generiert, correctedStf: $json.korrigiert, name: $json.name || null }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "bc0cb88a-3aaa-4dbc-8303-3263f881d938",
+      "name": "Bericht",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst cfg = $('Konfiguration').first().json;\nconst r = $json;\nconst esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));\nlet subject, h;\nif (r.ok !== true) {\n  subject = 'Aeneas-Formulare lernen: FEHLER';\n  h = `<p>Die Korrektur konnte nicht verarbeitet werden:</p><p><code>${esc(r.error?.message || r.error || JSON.stringify(r))}</code></p>`;\n} else {\n  const x = r.report, c = x.calibrationAfter;\n  subject = `Aeneas-Formulare lernen: ${x.slotsAdded} neue Feld-Zuordnungen, ${x.textPairs} Textpaare verglichen`;\n  h = `<p>Die KI hat aus der Korrektur von <b>${esc(x.form)}</b> gelernt.</p><ul>` +\n    `<li>Verglichene Textboxen: ${x.textPairs} (erzeugt ${x.generatedBoxes}, korrigiert ${x.correctedBoxes}); Linien/Rahmen: ${x.linePairs}</li>` +\n    `<li>Neue Zuordnungen „Feld-Beschriftung → Platzhalter“: <b>${x.slotsAdded}</b> (aktualisiert ${x.slotsUpdated})</li>` +\n    `<li>Neue Text-Ersetzungen mit Platzhaltern: <b>${x.rewritesAdded}</b>; reine Textkorrekturen nur protokolliert: ${x.textEditsLogged}</li>` +\n    `<li>Positionskorrektur: Text dx ${x.dxShift?.toFixed?.(2) ?? '–'} / dy ${x.dyShift?.toFixed?.(2) ?? '–'} mm → Kalibrierung jetzt Dx ${c.dx}, Dy ${c.dy} (Basis: ${c.corrections} Korrektur(en))</li></ul>`;\n  if (x.notes?.length) h += '<p>Hinweise:</p><ul>' + x.notes.map(n => `<li>${esc(n)}</li>`).join('') + '</ul>';\n  h += '<p>Das Gelernte wird bei der nächsten Erzeugung automatisch verwendet. Je mehr Korrekturen, desto verlässlicher.</p>';\n}\nreturn { json: { subject, html: h, to: cfg.email, from: cfg.mailFrom } };\n"
+      }
+    },
+    {
+      "id": "2b734650-58a5-43a1-9aff-748d065042f6",
+      "name": "Mail",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        960,
+        200
+      ],
+      "parameters": {
+        "fromEmail": "={{ $json.from }}",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "credentials": {
+        "smtp": {
+          "id": "SMTP_CREDENTIAL_ID",
+          "name": "SMTP Haneke"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Korrektur melden": {
+      "main": [
+        [
+          {
+            "node": "Konfiguration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konfiguration": {
+      "main": [
+        [
+          {
+            "node": "Lernen (StfKit)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lernen (StfKit)": {
+      "main": [
+        [
+          {
+            "node": "Bericht",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bericht": {
+      "main": [
+        [
+          {
+            "node": "Mail",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

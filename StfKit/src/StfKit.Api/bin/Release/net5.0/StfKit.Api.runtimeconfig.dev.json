@@ -1,0 +1,8 @@
+{
+  "runtimeOptions": {
+    "additionalProbingPaths": [
+      "C:\\Users\\Umrykhina\\.dotnet\\store\\|arch|\\|tfm|",
+      "\\\\nas\\transfer\\NuGetPackages"
+    ]
+  }
+}

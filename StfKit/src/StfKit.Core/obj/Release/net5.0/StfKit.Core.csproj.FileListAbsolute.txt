@@ -1,0 +1,12 @@
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\bin\Release\net5.0\StfKit.Core.deps.json
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\bin\Release\net5.0\StfKit.Core.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\bin\Release\net5.0\ref\StfKit.Core.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\bin\Release\net5.0\StfKit.Core.pdb
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\StfKit.Core.csproj.AssemblyReference.cache
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\StfKit.Core.GeneratedMSBuildEditorConfig.editorconfig
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\StfKit.Core.AssemblyInfoInputs.cache
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\StfKit.Core.AssemblyInfo.cs
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\StfKit.Core.csproj.CoreCompileInputs.cache
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\StfKit.Core.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\ref\StfKit.Core.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Core\obj\Release\net5.0\StfKit.Core.pdb

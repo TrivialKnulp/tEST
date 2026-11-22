@@ -1,0 +1,939 @@
+{
+  "name": "Aeneas-Formulare v4 (Upload, Qdrant-Suche, Typ, Vorschau, Lernen)",
+  "nodes": [
+    {
+      "id": "711ef099-46c5-4310-a979-ef0b438abe28",
+      "name": "Formular-Import",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {
+        "formTitle": "Aeneas-Formulare automatisch erstellen",
+        "formDescription": "Eine oder mehrere Dateien hochladen (PDF, Word oder STF). Die KI sucht in der Qdrant-Datenbank das ähnlichste vorhandene Formular (bei mehreren Varianten das neueste), baut daraus die Aeneas-Formulardatei (.stf) und schickt eine Mail, wenn sie fertig ist. Hochgeladene STF-Dateien werden nicht neu gebaut: Sie kommen als neue Vorlage in die Qdrant-Datenbank und, wenn sie die korrigierte Fassung eines von der KI erzeugten Formulars sind (gleicher Dateiname), lernt die KI daraus.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Formulare",
+              "fieldType": "file",
+              "multipleFiles": true,
+              "acceptFileTypes": ".pdf,.docx,.doc,.rtf,.odt,.stf",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "STF-Dateien (falls hochgeladen)",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "Automatisch"
+                  },
+                  {
+                    "option": "Nur als Vorlage aufnehmen"
+                  },
+                  {
+                    "option": "Nur als Korrektur lernen"
+                  }
+                ]
+              },
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "Kunde / Mandant",
+              "placeholder": "z. B. VG Hagenbach",
+              "requiredField": false
+            },
+            {
+              "fieldLabel": "E-Mail für Benachrichtigung",
+              "fieldType": "email",
+              "requiredField": true
+            },
+            {
+              "fieldLabel": "Aeneas-Dateiversion",
+              "fieldType": "dropdown",
+              "fieldOptions": {
+                "values": [
+                  {
+                    "option": "DB2026"
+                  },
+                  {
+                    "option": "DB2025"
+                  },
+                  {
+                    "option": "DB2014"
+                  }
+                ]
+              },
+              "requiredField": false
+            }
+          ]
+        },
+        "options": {}
+      },
+      "webhookId": "9d7fbc2f-1820-4831-9e10-fe7690046f36"
+    },
+    {
+      "id": "dd7cd47f-01be-4582-b7fe-b8f3e57f08b2",
+      "name": "Konfiguration",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        300
+      ],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6f6a47a6-640c-4c33-bb23-888df20a77fc",
+              "name": "kunde",
+              "value": "={{ $json['Kunde / Mandant'] || 'Ohne Kundenangabe' }}",
+              "type": "string"
+            },
+            {
+              "id": "21e44d32-f390-4ad6-9dfc-16a4f74fa1ab",
+              "name": "email",
+              "value": "={{ $json['E-Mail für Benachrichtigung'] || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "f5d48242-7535-4b3d-a196-14323a83e3fe",
+              "name": "version",
+              "value": "={{ $json['Aeneas-Dateiversion'] || 'DB2026' }}",
+              "type": "string"
+            },
+            {
+              "id": "9a86d67a-c1d9-439f-9e9e-440584703df4",
+              "name": "apiUrl",
+              "value": "http://IP-DES-PC-MIT-STFKIT-API:5077",
+              "type": "string"
+            },
+            {
+              "id": "665596ad-a63a-479f-8452-0586a7622202",
+              "name": "corpusDir",
+              "value": "T:\\Kseniia Umrykhina\\ki\\Formular\\A - im Echtbetrieb",
+              "type": "string"
+            },
+            {
+              "id": "f193b2e7-d356-40f5-aef0-5d0a78c64a4b",
+              "name": "ollamaUrl",
+              "value": "http://kiserver:11434",
+              "type": "string"
+            },
+            {
+              "id": "26b4dcec-fa00-4e46-aa84-612fe7fde4b7",
+              "name": "model",
+              "value": "qwen3.8:27b",
+              "type": "string"
+            },
+            {
+              "id": "1802a195-7aa0-4fe3-b285-0c42950188ab",
+              "name": "minConfidence",
+              "value": 0.6,
+              "type": "number"
+            },
+            {
+              "id": "666b5976-96dc-415f-bfe1-2168c459e4d7",
+              "name": "mailFrom",
+              "value": "ki@haneke.de",
+              "type": "string"
+            },
+            {
+              "id": "c1cee62a-9865-49d3-a694-38c44d9aeb56",
+              "name": "outBase",
+              "value": "T:\\Kseniia Umrykhina\\ki\\Formular\\test\\_aeneas_out",
+              "type": "string"
+            },
+            {
+              "id": "c2fe8ce4-5f10-4332-9519-9d537a28dd8c",
+              "name": "outDir",
+              "value": "={{ 'T:\\\\Kseniia Umrykhina\\\\ki\\\\Formular\\\\test\\\\_aeneas_out\\\\' + String($json['Kunde / Mandant'] || 'Ohne Kundenangabe').replace(/[^A-Za-z0-9ÄÖÜäöüß _.-]/g, '_') + '\\\\' + $now.toFormat('yyyyLLdd_HHmm') }}",
+              "type": "string"
+            },
+            {
+              "id": "b8abfd04-7ef3-4b60-b3b0-56adffa895e2",
+              "name": "stfModus",
+              "type": "string",
+              "value": "={{ ({'Nur als Vorlage aufnehmen':'template','Nur als Korrektur lernen':'learn'})[$json['STF-Dateien (falls hochgeladen)']] || 'auto' }}"
+            },
+            {
+              "id": "86903893-25a9-4e4a-8088-71634d1f398b",
+              "name": "standardEmail",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "b7eb6285-e3a5-4c59-a9b0-f51df14fb9de",
+      "name": "Platzhalter-Katalog",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Konfiguration').first().json.apiUrl + '/placeholders' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ dir: $('Konfiguration').first().json.corpusDir, top: 150 }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "87b0aba1-0ac2-41d9-9ef4-694671d4967c",
+      "name": "Hochladen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Konfiguration').first().json.apiUrl + '/upload' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ files: $('Konfiguration').first().json.files, kunde: $('Konfiguration').first().json.kunde }) }}",
+        "options": {
+          "timeout": 900000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "be81f81a-0f75-4bf3-bddd-c64a9f025cfe",
+      "name": "Dokumente aufteilen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\n// Antwort von POST /upload -> ein Item je Dokumentgruppe (pdf/docx gleicher Basisname)\nconst s = $input.first().json;\nif (s.ok !== true) throw new Error('Upload fehlgeschlagen: ' + (s.error?.message || s.error || JSON.stringify(s)));\nif (!s.items.length) throw new Error('Keine verwertbaren Dateien (PDF/Word/STF) hochgeladen.');\nreturn s.items.map(d => ({ json: { ...d, hasPdf: !!d.pdf, hasSource: !!(d.pdf || d.docx || d.doc), hasStf: !!d.stf } }));\n"
+      }
+    },
+    {
+      "id": "c8869139-a67a-4aad-94ca-c54668c435b8",
+      "name": "Dokument vorhanden?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "b9999618-5ee7-4882-9fdd-dd90afa07136",
+              "leftValue": "={{ $json.hasSource }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "bcf1afc0-74c5-440d-b100-ad1b0c58631e",
+      "name": "Analyse",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Konfiguration').first().json.apiUrl + '/analyze' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ pdf: $json.pdf || null, docx: $json.docx || null, other: $json.doc || null }) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "991c2c4e-1433-4c62-8363-087945008035",
+      "name": "Auswerten",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst cfg = $('Konfiguration').first().json;\nconst doc = $('Dokument vorhanden?').item.json;\nconst a = $json;\nif (a.ok !== true) return { json: { ...doc, ok: false, error: 'Analyse fehlgeschlagen: ' + (a.error?.message || a.error || JSON.stringify(a)) } };\nconst catalog = ($('Platzhalter-Katalog').first().json.entries) || [];\nconst catalogNames = catalog.map(c => c.name);\nconst inputFields = a.inputFields || [];\nconst notes = a.notes || { comments: [], highlights: [], printRules: [], commentPlaceholders: {} };\nconst highlights = (notes.highlights || []).filter(h => h.text && h.text.trim().length > 1);\nconst hasFields = a.fields.length > 0 || inputFields.length > 0 || highlights.length > 0;\nconst system = 'Du ordnest Felder eines Kunden-Dokuments den Platzhaltern der Software AENEAS zu. ' +\n  'kundenfelder sind Serienbrieffelder aus Word; eingabefelder sind leere Eingabefelder im PDF (key = Beschriftung des Feldes). ' +\n  'Antworte ausschließlich mit JSON im Format {\"mapping\":[{\"field\":\"<Kundenfeld>\",\"placeholder\":\"<Platzhalter ohne spitze Klammern oder leer>\",\"confidence\":0.0-1.0,\"typ\":\"Text|Datum|Betrag|Zahl|Auswahl\",\"reason\":\"kurz\"}],' +\n  '\"slots\":[{\"key\":\"<key des Eingabefeldes>\",\"text\":\"<Platzhalter in spitzen Klammern, mehrere durch Leerzeichen getrennt>\",\"confidence\":0.0-1.0}]}. ' +\n  'markierungen sind farbig markierte Textstellen im Word-Dokument (gelb/rot = variable Stelle, z. B. \\\"Vorname Nachname\\\", \\\"PLZ Ort\\\", ein Datum); kommentare sind Anweisungen der Mitarbeiter und gehen vor. ' +\n  'Zu jeder markierten Stelle, die ein veränderlicher Wert ist, gib in \\\"textMapping\\\" [{\\\"text\\\":\\\"<markierter Text exakt>\\\",\\\"placeholder\\\":\\\"<Platzhalter ohne Klammern; mehrere als <A> <B>>\\\",\\\"confidence\\\":0.0-1.0}] an. Feste Texte (z. B. Behördenname, Ortsangaben) NICHT zuordnen. ' +\n  'Verwende NUR Platzhalter aus dem Katalog. Ordne nur zu, wenn die Beschriftung eindeutig passt; sonst weglassen oder confidence unter 0.5. Erfinde nichts.';\nconst user = JSON.stringify({\n  kundenfelder: a.fields,\n  eingabefelder: inputFields.map(f => ({ key: f.key, beschriftung: f.label, seite: f.page })),\n  textKontext: a.promptContext,\n  markierungen: highlights.map(h => ({ text: h.text, farbe: h.color, absatz: h.context })),\n  kommentare: (notes.comments || []).map(c => ({ markierterText: c.anchor, kommentar: c.text })),\n  platzhalterKatalog: catalog.map(c => ({ name: c.name, anzahl: c.count, beispiel: c.example }))\n});\nreturn { json: { ...doc, ok: true, irId: a.irId, highlightTexts: highlights.map(h => h.text), docNotes: { comments: notes.comments || [], printRules: notes.printRules || [], kindHint: notes.kindHint || null }, picturesFound: a.picturesFound || 0, pages: a.pages, fields: a.fields, inputFields, hasFields,\n  linesTodo: a.linesTodo, imagesTodo: a.imagesTodo, catalogNames,\n  ollamaBody: { model: cfg.model, stream: false, format: 'json', options: { temperature: 0, num_ctx: 16384 },\n                messages: [{ role: 'system', content: system }, { role: 'user', content: user }] } } };\n"
+      }
+    },
+    {
+      "id": "b3558711-5443-48d6-a39f-d40af7a3943f",
+      "name": "Analyse OK?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2160,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "dbae9cb3-789a-416d-9040-8fb3515b69a2",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "14312226-d0bf-4182-b6e9-b7c5302c2eb7",
+      "name": "Felder vorhanden?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2400,
+        100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "296a8813-cb01-4f6a-b326-a8dfc3a29731",
+              "leftValue": "={{ $json.hasFields }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "03cc0072-0841-481e-a00b-2cb9cd1bc58d",
+      "name": "Ollama (Feld-Mapping)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Konfiguration').first().json.ollamaUrl + '/api/chat' }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.ollamaBody) }}",
+        "options": {
+          "timeout": 600000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "0161a257-8800-4819-a929-697077c2a9bb",
+      "name": "Mapping prüfen",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2880,
+        0
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst cfg = $('Konfiguration').first().json;\nconst a = $('Auswerten').item.json;\nlet mapping = [], slotsRaw = [], textRaw = [], llmError = null;\ntry {\n  const c = String($json.message.content).replace(/```json|```/g, '').trim();\n  const p = JSON.parse(c); mapping = Array.isArray(p) ? p : (p.mapping || []); slotsRaw = Array.isArray(p) ? [] : (p.slots || []); textRaw = Array.isArray(p) ? [] : (p.textMapping || []);\n} catch (e) { llmError = String($json.error?.message || $json.error || e.message); }\nconst names = new Set(a.catalogNames);\nconst map = {}, low = [];\nfor (const m of mapping) {\n  if (!m || !m.field || !a.fields.includes(m.field)) continue;\n  const ph = String(m.placeholder || '').replace(/[<>]/g, '').split('|')[0].trim();\n  const conf = Number(m.confidence ?? 0);\n  if (ph && names.has(ph) && conf >= cfg.minConfidence) map[m.field] = ph;\n  else low.push({ field: m.field, placeholder: ph || null, confidence: conf, reason: ph && !names.has(ph) ? 'nicht im Katalog' : 'unsicher' });\n}\nconst slots = {}, slotKeys = new Set((a.inputFields || []).map(f => f.key));\nfor (const sl of slotsRaw) {\n  if (!sl || !sl.key || !slotKeys.has(sl.key)) continue;\n  const text = String(sl.text || '').trim(), conf = Number(sl.confidence ?? 0);\n  const phs = [...text.matchAll(/<([^<>|]+)(?:\\|[^<>]*)?>/g)].map(m => m[1].trim());\n  if (phs.length && phs.every(x => names.has(x)) && conf >= cfg.minConfidence) slots[sl.key] = { text, size: 10, dx: 0.5, dy: 0, w: 0, h: 0 };\n  else low.push({ field: '[Feld] ' + sl.key, placeholder: text || null, confidence: conf, reason: phs.length && !phs.every(x => names.has(x)) ? 'nicht im Katalog' : 'unsicher' });\n}\nconst textMap = {}, hlSet = new Set(a.highlightTexts || []);\nfor (const tm of textRaw) {\n  if (!tm || !tm.text || !hlSet.has(tm.text)) continue;\n  const val = String(tm.placeholder || '').trim(), conf = Number(tm.confidence ?? 0);\n  const phs = val.includes('<') ? [...val.matchAll(/<([^<>|]+)(?:\\|[^<>]*)?>/g)].map(m => m[1].trim()) : [val.split('|')[0].trim()];\n  if (val && phs.every(x => names.has(x)) && conf >= cfg.minConfidence) textMap[tm.text] = val;\n  else low.push({ field: '[Markierung] ' + tm.text, placeholder: val || null, confidence: conf, reason: val && !phs.every(x => names.has(x)) ? 'nicht im Katalog' : 'unsicher' });\n}\nfor (const f of a.fields) if (!(f in map) && !low.find(l => l.field === f)) low.push({ field: f, placeholder: null, confidence: 0, reason: 'kein Vorschlag' });\nconst typOf = ph => /DATUM/.test(ph) ? 'Datum' : /BETRAG|EURO/.test(ph) ? 'Betrag' : /JAHR|ANZAHL/.test(ph) ? 'Zahl' : 'Text';\nconst fieldList = [\n  ...mapping.filter(x => x && x.field && map[x.field]).map(x => ({ feldname: x.field, feldtyp: x.typ || typOf(map[x.field]), platzhalter: map[x.field], sicherheit: Number(x.confidence ?? 0) })),\n  ...Object.entries(slots).map(([key, v]) => ({ feldname: key, feldtyp: 'Eingabefeld', platzhalter: v.text, sicherheit: null })),\n  ...Object.entries(textMap).map(([text, ph]) => ({ feldname: text, feldtyp: typOf(ph), platzhalter: ph, sicherheit: null }))\n];\nreturn { json: { baseName: a.baseName, pdf: a.pdf, irId: a.irId, mapped: map, slots, textMap, low, llmError, docNotes: a.docNotes, fieldList } };\n"
+      }
+    },
+    {
+      "id": "d3bec063-de3a-4cf9-b721-808a4b9870af",
+      "name": "Ohne Mapping",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        260
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nconst cfg = $('Konfiguration').first().json;\nconst a = $('Auswerten').item.json;\nreturn { json: { baseName: a.baseName, pdf: a.pdf, irId: a.irId, mapped: {}, slots: {}, textMap: {}, docNotes: a.docNotes, low: [], llmError: null, note: 'Keine Word-Felder gefunden - Platzhalter müssen manuell gesetzt werden' } };\n"
+      }
+    },
+    {
+      "id": "97047706-f01e-4577-b22b-e6292d8eea1b",
+      "name": "STF erzeugen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3120,
+        100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Konfiguration').first().json.apiUrl + '/generate' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ irId: $json.irId, name: $json.baseName, outDir: $('Konfiguration').first().json.outDir, version: $('Konfiguration').first().json.version, mapping: $json.mapped, slots: $json.slots, textMapping: $json.textMap || {}, mode: 'auto', corpusDirs: [$('Konfiguration').first().json.corpusDir], preview: true, useQdrant: true }) }}",
+        "options": {
+          "timeout": 120000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "3719771d-acb9-4228-ad2c-6fd86ccaac03",
+      "name": "Ergebnis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3360,
+        100
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\nlet ctx;\ntry { ctx = $('Mapping prüfen').item.json; } catch (e) { ctx = $('Ohne Mapping').item.json; }\nconst g = $json;\nif (g.ok !== true) return { json: { kind: 'error', baseName: ctx.baseName, error: 'Erzeugen fehlgeschlagen: ' + (g.error?.message || g.error || JSON.stringify(g)) } };\nreturn { json: { kind: 'ok', baseName: ctx.baseName, stf: g.stf, renamed: g.renamed, pages: g.pages, texts: g.texts,\n  placeholders: g.placeholders, unmapped: g.unmappedFields, low: ctx.low, llmError: ctx.llmError, note: ctx.note || null,\n  linesTodo: g.linesTodo, imagesTodo: g.imagesTodo, linesMade: g.linesMade, slotsFilled: g.slotsFilled,\n  typ: g.kind, typSicherheit: g.kindConfidence, vorlageQuelle: g.templateSource, vorlageOrdner: g.templateFolder, vorlageStand: g.templateModified, pruefen: g.needsReview, pruefGruende: g.reviewReasons || [], fieldList: ctx.fieldList || [], modus: g.mode, textOnly: g.textOnly === true, vorlage: g.template, aehnlichkeit: g.similarity, importModus: g.importMode,\n  ersetzeZiel: g.replaceTarget, vorschau: g.previewPdf, manifest: g.manifest, hinweise: g.notes || [], docKommentare: g.docComments || [], druckregeln: g.printRules || [], bilderEingefuegt: g.picturesMade || 0, markierungenErsetzt: g.textMapped || 0 } };\n"
+      }
+    },
+    {
+      "id": "77fb884e-a3fa-44dc-a8aa-af1dd8388fe5",
+      "name": "Zusammenführen",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        3600,
+        200
+      ],
+      "parameters": {
+        "mode": "append",
+        "options": {}
+      }
+    },
+    {
+      "id": "9949a3ee-a911-4b8f-96f6-8a062f895724",
+      "name": "Analysefehler markieren",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        340
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "return { json: { kind: 'error', baseName: $json.baseName, error: $json.error } };"
+      }
+    },
+    {
+      "id": "04507c0a-e00a-4285-b554-59157224bff4",
+      "name": "Bericht",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3840,
+        200
+      ],
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "\nconst cfg = $('Konfiguration').first().json;\nconst items = $input.all().map(i => i.json);\nconst ok = items.filter(i => i.kind === 'ok'), err = items.filter(i => i.kind === 'error'), stf = items.filter(i => i.kind === 'stf');\nconst noPdf = $('Dokumente aufteilen').all().map(i => i.json).filter(d => !d.hasSource && !d.hasStf);\nconst esc = s => String(s ?? '').replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));\nlet h = `<p>Die KI hat die Formulare für <b>${esc(cfg.kunde)}</b> verarbeitet.</p>`;\nh += `<p><b>${ok.length}</b> Formular(e) erzeugt, <b>${err.length}</b> Fehler, <b>${noPdf.length}</b> übersprungen, <b>${stf.length}</b> STF-Datei(en) verarbeitet.<br>Ausgabeordner auf dem Server: <code>${esc(cfg.outDir)}</code></p>`;\nfor (const r of ok) {\n  h += `<hr><p><b>${esc(r.stf.split(/[\\\\\\/]/).pop())}</b> – ${r.pages} Seite(n), ${r.texts} Textboxen<br>Platzhalter: ${esc((r.placeholders || []).join(', ')) || '–'}</p>`;\n  h += `<p>Typ: <b>${esc(r.typ)}</b> (Sicherheit ${esc(r.typSicherheit)}) · Erzeugung: <b>${r.modus === 'bescheid' ? 'vorhandenen Bescheid bearbeitet' : r.modus === 'inherit' ? 'auf Basis eines ähnlichen Formulars' : 'von Grund auf'}</b>${r.vorlage ? ` (Vorlage: ${esc(r.vorlage)}, Ähnlichkeit ${esc(r.aehnlichkeit)})` : ''}<br>Import in Aeneas: <b>${r.importModus === 'Ersetzen' ? 'ERSETZEN von „' + esc(r.ersetzeZiel) + '“ (Vorlage laden → Ersetzen)' : 'Neu anlegen'}</b>${r.vorschau ? `<br>Vorschau-PDF zur Prüfung: <code>${esc(r.vorschau)}</code> (rot = Original, schwarz/blau = erzeugt; Näherung, nicht der Designer-Ausdruck)` : ''}</p>`;\n  if (r.vorlageQuelle === 'qdrant') h += `<p>Vorlage aus der Qdrant-Datenbank: <b>${esc(r.vorlage)}</b> (${esc(r.vorlageOrdner)}, Stand ${esc(String(r.vorlageStand || '').slice(0, 10))})</p>`;\n  if (r.textOnly) h += '<p><b>Word ohne PDF (Nur-Text-Modus):</b> übernommen wurde nur der Text; Positionen, Linien und Bilder stammen aus der Vorlage' + (r.vorlage ? ` „${esc(r.vorlage)}“` : '') + ' (bzw. einfacher Fließtext, wenn keine Vorlage gefunden wurde). Bitte das Layout in AENEAS besonders sorgfältig prüfen.</p>';\n  if (r.pruefen) h += '<p><b>Bitte besonders prüfen:</b></p><ul>' + (r.pruefGruende || []).map(x => `<li>${esc(x)}</li>`).join('') + '</ul>';\n  if (r.fieldList?.length) h += '<p>Felder und Platzhalter (JSON):</p><pre style=\"font-size:11px\">' + esc(JSON.stringify(r.fieldList, null, 1)) + '</pre>';\n  const todo = [];\n  if (r.bilderEingefuegt) h += `<p>Logos/Wappen automatisch eingefügt: <b>${r.bilderEingefuegt}</b> · markierte Stellen durch Platzhalter ersetzt: <b>${r.markierungenErsetzt}</b></p>`;\n  if (r.docKommentare?.length) h += '<p><b>Kommentare aus dem Word-Dokument (bitte beachten):</b></p><ul>' + r.docKommentare.map(k => `<li>${esc(k)}</li>`).join('') + '</ul>';\n  if (r.druckregeln?.length) h += '<p><b>Druck-/Anhängeregeln laut Kommentar (in Aeneas einzurichten):</b></p><ul>' + r.druckregeln.map(k => `<li>${esc(k)}</li>`).join('') + '</ul>';\n  for (const n of (r.hinweise || []).slice(0, 8)) todo.push(n);\n  if (r.unmapped?.length) todo.push('Nicht zugeordnete Felder: ' + r.unmapped.join(', '));\n  if (r.low?.length) todo.push('Unsichere Zuordnungen: ' + r.low.map(l => `${l.field}→${l.placeholder || '?'} (${l.reason})`).join('; '));\n  if (r.linesTodo) todo.push(`${r.linesTodo} Linien/Rahmen noch von Hand`);\n  if (r.imagesTodo) todo.push(`${r.imagesTodo} Bild(er)/Logo konnten nicht automatisch übernommen werden (z. B. JPEG) - bitte von Hand einfügen`);\n  if (r.renamed) todo.push('Datei existierte bereits - neue Datei wurde als ' + r.stf.split(/[\\\\\\/]/).pop() + ' gespeichert (nichts überschrieben)');\n  if (r.llmError) todo.push('KI-Fehler: ' + r.llmError);\n  if (r.note) todo.push(r.note);\n  if (todo.length) h += '<ul>' + todo.map(t => `<li>${esc(t)}</li>`).join('') + '</ul>';\n}\nif (err.length) h += '<hr><p><b>Fehler</b></p><ul>' + err.map(e => `<li>${esc(e.baseName)}: ${esc(e.error)}</li>`).join('') + '</ul>';\nif (stf.length) h += '<hr><p><b>Hochgeladene STF-Dateien</b> (nicht neu gebaut: als Vorlage aufgenommen bzw. daraus gelernt):</p><ul>' + stf.map(x => '<li><b>' + esc(x.baseName) + '</b>: ' + (x.ok ? esc((x.actions || []).join(' + ')) + (x.learned ? ` (Textpaare verglichen: ${esc(x.learned.textPairs)})` : '') + (x.generated ? ' – Bezug: ' + esc(String(x.generated).split(/[\\\\\\/]/).pop()) : '') : '<b>FEHLER:</b> ' + esc(x.error)) + ((x.warnings || []).length ? ' – ' + esc(x.warnings.join('; ')) : '') + '</li>').join('') + '</ul>';\nif (noPdf.length) h += '<hr><p><b>Übersprungen</b> (weder PDF noch Word zum Nachbauen vorhanden, z. B. reine .stf-Dateien): ' + noPdf.map(d => esc(d.baseName)).join(', ') + '</p>';\nh += '<hr><p>Bitte in AENEAS prüfen (ausgefüllter Ausdruck/PDF). Nach der Korrektur in Aeneas die korrigierte Fassung exportieren und über den Workflow „Aeneas-Formulare lernen“ melden, damit die KI daraus lernt. Import der erzeugten Dateien: manifest.csv im Ausgabeordner (FormulareImport).</p>';\nreturn [{ json: { subject: `Aeneas-Formulare: ${cfg.kunde} – ${ok.length} erzeugt, ${err.length} Fehler${stf.length ? ', ' + stf.length + ' STF' : ''}`, html: h, to: cfg.email || cfg.standardEmail || '', from: cfg.mailFrom } }];\n"
+      }
+    },
+    {
+      "id": "ad6f2c42-b6bc-4e25-8d5d-5fd9d71142ab",
+      "name": "Mail an Bearbeiter",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        4200,
+        200
+      ],
+      "parameters": {
+        "fromEmail": "={{ $json.from }}",
+        "toEmail": "={{ $json.to }}",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "credentials": {
+        "smtp": {
+          "id": "SMTP_CREDENTIAL_ID",
+          "name": "SMTP Haneke"
+        }
+      }
+    },
+    {
+      "id": "2c9a2389-22fa-4a03-a0dc-3b8d098b7aab",
+      "name": "Hinweis",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -60
+      ],
+      "parameters": {
+        "width": 760,
+        "height": 330,
+        "content": "## Aeneas-Formulare per KI (v4)\n**Vor dem Start:** Dienst *StfKit.Api* starten (siehe README), LibreOffice auf dem Server (empfohlen; ohne LibreOffice läuft Word ohne PDF im Nur-Text-Modus: Text aus dem Word, Positionen aus der ähnlichsten Vorlage, immer mit Prüfhinweis), Qdrant-Sammlung *Formularerstellung* geladen (`StfKit qdrant-load`). In *Konfiguration* `apiUrl`, `corpusDir`, `ollamaUrl`, `model`, `outDir` anpassen. Credentials: nur SMTP.\n\nFluss: Formular (Dateien hochladen) → Dateien kodieren → Katalog → Hochladen (StfKit /upload, Word wird per LibreOffice zu PDF) → je Dokument: Analyse + Word-Kommentare/Markierungen → KI-Zuordnung der Felder (JSON mit Feldtyp) → .stf erzeugen: Vorlage = ähnlichstes Formular aus Qdrant (bei Varianten das neueste), Gebührenbescheid = vorhandenen bearbeiten → Vorschau-PDF, manifest.csv → Bericht per Mail.\nDer Ordner mit alten Formularen wird NICHT bei jedem Lauf verarbeitet, er steckt nur als Wissen in Qdrant.\nLernen aus Korrekturen: Workflow *Aeneas-Formulare lernen v2*.\\n\\n**STF-Dateien im Upload:** werden nicht neu gebaut. Sie werden als neue Vorlage in Qdrant aufgenommen (`/stf/ingest`) und - wenn im Ausgabeordner ein von der KI erzeugtes Formular mit gleichem Namen liegt - als Korrektur gelernt. Modus im Formular wählbar.\\n\\n**Pflichtfeld ist nur die Datei.** Ohne Kunde: Ordner *Ohne Kundenangabe*; ohne Version: DB2026; ohne E-Mail wird keine Mail gesendet (Ergebnis liegt im Ausgabeordner) - oder in *Konfiguration* `standardEmail` eintragen."
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "const item = $input.first();\nconst files = [];\nfor (const key of Object.keys(item.binary || {})) {\n  const b = item.binary[key];\n  const buf = await this.helpers.getBinaryDataBuffer(0, key);\n  files.push({ name: b.fileName || key, base64: buf.toString('base64') });\n}\nif (!files.length) throw new Error('Bitte mindestens eine Datei hochladen.');\nreturn [{ json: { ...item.json, files } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        300
+      ],
+      "id": "38199006-8a4a-49ff-9fac-75d9b9b6e18e",
+      "name": "Dateien kodieren"
+    },
+    {
+      "id": "7a71d72a-dd17-46f7-8daf-b77dd1ae6e15",
+      "name": "STF hochgeladen?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        520
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "78703569-85f8-473a-8fe2-d03f4a31dcf3",
+              "leftValue": "={{ $json.hasStf }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "0880cf07-f3c9-4873-b97b-c15ed13df9b5",
+      "name": "STF verarbeiten",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1560,
+        620
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('Konfiguration').first().json.apiUrl + '/stf/ingest' }}",
+        "authentication": "none",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ files: [$('STF hochgeladen?').item.json.stf], searchDir: $('Konfiguration').first().json.outBase, mode: $('Konfiguration').first().json.stfModus || 'auto' }) }}",
+        "options": {
+          "timeout": 300000
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "1bb85956-57c6-4ecd-aee5-732cf2c51b14",
+      "name": "STF-Ergebnis",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        620
+      ],
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "\n// Antwort von POST /stf/ingest (eine Datei je Aufruf)\nconst doc = $('STF hochgeladen?').item.json;\nconst g = $json, r = (g.results || [])[0] || null;\nconst err = r ? (r.ok === true ? null : (r.error || 'unbekannter Fehler')) : String(g.error?.message || g.error || JSON.stringify(g));\nreturn { json: { kind: 'stf', baseName: doc.baseName, ok: !err, error: err, actions: r?.actions || [], warnings: r?.warnings || [], generated: r?.generated || null,\n  learned: r?.learned || null, templatePath: r?.templatePath || null, embedSource: r?.embedSource || null } };\n"
+      }
+    },
+    {
+      "id": "cf5ddaa9-933e-4857-a018-0627372a9da8",
+      "name": "E-Mail angegeben?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        3960,
+        200
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "aa5890ab-ca18-4e37-992f-28785d4ff552",
+              "leftValue": "={{ $json.to }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    }
+  ],
+  "connections": {
+    "Formular-Import": {
+      "main": [
+        [
+          {
+            "node": "Dateien kodieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Konfiguration": {
+      "main": [
+        [
+          {
+            "node": "Platzhalter-Katalog",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Platzhalter-Katalog": {
+      "main": [
+        [
+          {
+            "node": "Hochladen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dokumente aufteilen": {
+      "main": [
+        [
+          {
+            "node": "STF hochgeladen?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dokument vorhanden?": {
+      "main": [
+        [
+          {
+            "node": "Analyse",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse": {
+      "main": [
+        [
+          {
+            "node": "Auswerten",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Auswerten": {
+      "main": [
+        [
+          {
+            "node": "Analyse OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyse OK?": {
+      "main": [
+        [
+          {
+            "node": "Felder vorhanden?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Analysefehler markieren",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Felder vorhanden?": {
+      "main": [
+        [
+          {
+            "node": "Ollama (Feld-Mapping)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ohne Mapping",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama (Feld-Mapping)": {
+      "main": [
+        [
+          {
+            "node": "Mapping prüfen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mapping prüfen": {
+      "main": [
+        [
+          {
+            "node": "STF erzeugen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ohne Mapping": {
+      "main": [
+        [
+          {
+            "node": "STF erzeugen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "STF erzeugen": {
+      "main": [
+        [
+          {
+            "node": "Ergebnis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ergebnis": {
+      "main": [
+        [
+          {
+            "node": "Zusammenführen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analysefehler markieren": {
+      "main": [
+        [
+          {
+            "node": "Zusammenführen",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Zusammenführen": {
+      "main": [
+        [
+          {
+            "node": "Bericht",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Bericht": {
+      "main": [
+        [
+          {
+            "node": "E-Mail angegeben?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dateien kodieren": {
+      "main": [
+        [
+          {
+            "node": "Konfiguration",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Hochladen": {
+      "main": [
+        [
+          {
+            "node": "Dokumente aufteilen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "STF hochgeladen?": {
+      "main": [
+        [
+          {
+            "node": "STF verarbeiten",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Dokument vorhanden?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "STF verarbeiten": {
+      "main": [
+        [
+          {
+            "node": "STF-Ergebnis",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "STF-Ergebnis": {
+      "main": [
+        [
+          {
+            "node": "Zusammenführen",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "E-Mail angegeben?": {
+      "main": [
+        [
+          {
+            "node": "Mail an Bearbeiter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  },
+  "id": "5ac3706d-674b-4395-bcd8-d04f182bbb7f"
+}

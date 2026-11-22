@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>9.0</LangVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="PdfPig" Version="0.1.9" />
+    <PackageReference Include="System.Drawing.Common" Version="5.0.3" />   <!-- JPEG-Logos -> PNG (nur Windows) -->
+    <ProjectReference Include="../StfKit.Core/StfKit.Core.csproj" />
+  </ItemGroup>
+</Project>

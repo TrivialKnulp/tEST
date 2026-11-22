@@ -1,0 +1,170 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v5.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v5.0": {
+      "StfKit.Pdf/1.0.0": {
+        "dependencies": {
+          "PdfPig": "0.1.9",
+          "StfKit.Core": "1.0.0",
+          "System.Drawing.Common": "5.0.3"
+        },
+        "runtime": {
+          "StfKit.Pdf.dll": {}
+        }
+      },
+      "Microsoft.Bcl.HashCode/1.1.1": {
+        "runtime": {
+          "lib/netcoreapp2.1/Microsoft.Bcl.HashCode.dll": {
+            "assemblyVersion": "1.0.0.0",
+            "fileVersion": "4.700.20.56604"
+          }
+        }
+      },
+      "Microsoft.NETCore.Platforms/5.0.0": {},
+      "Microsoft.Win32.SystemEvents/5.0.0": {
+        "dependencies": {
+          "Microsoft.NETCore.Platforms": "5.0.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/Microsoft.Win32.SystemEvents.dll": {
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/win/lib/netcoreapp3.0/Microsoft.Win32.SystemEvents.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "5.0.0.0",
+            "fileVersion": "5.0.20.51904"
+          }
+        }
+      },
+      "PdfPig/0.1.9": {
+        "dependencies": {
+          "Microsoft.Bcl.HashCode": "1.1.1",
+          "System.Memory": "4.5.5"
+        },
+        "runtime": {
+          "lib/netstandard2.0/UglyToad.PdfPig.Core.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/netstandard2.0/UglyToad.PdfPig.DocumentLayoutAnalysis.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/netstandard2.0/UglyToad.PdfPig.Fonts.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/netstandard2.0/UglyToad.PdfPig.Package.dll": {
+            "assemblyVersion": "0.1.8.0",
+            "fileVersion": "0.1.8.0"
+          },
+          "lib/netstandard2.0/UglyToad.PdfPig.Tokenization.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/netstandard2.0/UglyToad.PdfPig.Tokens.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          },
+          "lib/netstandard2.0/UglyToad.PdfPig.dll": {
+            "assemblyVersion": "0.1.9.0",
+            "fileVersion": "0.1.9.0"
+          }
+        }
+      },
+      "System.Drawing.Common/5.0.3": {
+        "dependencies": {
+          "Microsoft.Win32.SystemEvents": "5.0.0"
+        },
+        "runtime": {
+          "lib/netcoreapp3.0/System.Drawing.Common.dll": {
+            "assemblyVersion": "5.0.0.2",
+            "fileVersion": "5.0.1221.52207"
+          }
+        },
+        "runtimeTargets": {
+          "runtimes/unix/lib/netcoreapp3.0/System.Drawing.Common.dll": {
+            "rid": "unix",
+            "assetType": "runtime",
+            "assemblyVersion": "5.0.0.2",
+            "fileVersion": "5.0.1221.52207"
+          },
+          "runtimes/win/lib/netcoreapp3.0/System.Drawing.Common.dll": {
+            "rid": "win",
+            "assetType": "runtime",
+            "assemblyVersion": "5.0.0.2",
+            "fileVersion": "5.0.1221.52207"
+          }
+        }
+      },
+      "System.Memory/4.5.5": {},
+      "StfKit.Core/1.0.0": {
+        "runtime": {
+          "StfKit.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "StfKit.Pdf/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Microsoft.Bcl.HashCode/1.1.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-MalY0Y/uM/LjXtHfX/26l2VtN4LDNZ2OE3aumNOHDLsT4fNYy2hiHXI4CXCqKpNUNm7iJ2brrc4J89UdaL56FA==",
+      "path": "microsoft.bcl.hashcode/1.1.1",
+      "hashPath": "microsoft.bcl.hashcode.1.1.1.nupkg.sha512"
+    },
+    "Microsoft.NETCore.Platforms/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VyPlqzH2wavqquTcYpkIIAQ6WdenuKoFN0BdYBbCWsclXacSOHNQn66Gt4z5NBqEYW0FAPm5rlvki9ZiCij5xQ==",
+      "path": "microsoft.netcore.platforms/5.0.0",
+      "hashPath": "microsoft.netcore.platforms.5.0.0.nupkg.sha512"
+    },
+    "Microsoft.Win32.SystemEvents/5.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Bh6blKG8VAKvXiLe2L+sEsn62nc1Ij34MrNxepD2OCrS5cpCwQa9MeLyhVQPQ/R4Wlzwuy6wMK8hLb11QPDRsQ==",
+      "path": "microsoft.win32.systemevents/5.0.0",
+      "hashPath": "microsoft.win32.systemevents.5.0.0.nupkg.sha512"
+    },
+    "PdfPig/0.1.9": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-VU27oq5O0rpD+zWiD639xXkSHtsNXqbPpYV0pzYg9VPhDibH1cq1i67f9DuW2WnzDVEti0HipLcZxDhdayIzGg==",
+      "path": "pdfpig/0.1.9",
+      "hashPath": "pdfpig.0.1.9.nupkg.sha512"
+    },
+    "System.Drawing.Common/5.0.3": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-rEQZuslijqdsO0pkJn7LtGBaMc//YVA8de0meGihkg9oLPaN+w+/Pb5d71lgp0YjPoKgBKNMvdq0IPnoW4PEng==",
+      "path": "system.drawing.common/5.0.3",
+      "hashPath": "system.drawing.common.5.0.3.nupkg.sha512"
+    },
+    "System.Memory/4.5.5": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-XIWiDvKPXaTveaB7HVganDlOCRoj03l+jrwNvcge/t8vhGYKvqV+dMv6G4SAX2NoNmN0wZfVPTAlFwZcZvVOUw==",
+      "path": "system.memory/4.5.5",
+      "hashPath": "system.memory.4.5.5.nupkg.sha512"
+    },
+    "StfKit.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

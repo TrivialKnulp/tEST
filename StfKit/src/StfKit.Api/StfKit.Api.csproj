@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>StfKit.Api</AssemblyName>
+    <WithPdf Condition="'$(WithPdf)'==''">true</WithPdf>
+    <WinService Condition="'$(WinService)'==''">false</WinService>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(WithPdf)'=='true'"><DefineConstants>$(DefineConstants);PDF</DefineConstants></PropertyGroup>
+  <PropertyGroup Condition="'$(WinService)'=='true'"><DefineConstants>$(DefineConstants);WINSVC</DefineConstants></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../StfKit.Core/StfKit.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(WithPdf)'=='true'">
+    <ProjectReference Include="../StfKit.Pdf/StfKit.Pdf.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(WinService)'=='true'">
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="5.0.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Update="appsettings*.json" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

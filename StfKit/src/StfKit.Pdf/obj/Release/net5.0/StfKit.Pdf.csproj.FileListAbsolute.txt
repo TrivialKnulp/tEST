@@ -1,0 +1,15 @@
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\bin\Release\net5.0\StfKit.Pdf.deps.json
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\bin\Release\net5.0\StfKit.Pdf.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\bin\Release\net5.0\ref\StfKit.Pdf.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\bin\Release\net5.0\StfKit.Pdf.pdb
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\bin\Release\net5.0\StfKit.Core.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\bin\Release\net5.0\StfKit.Core.pdb
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.csproj.AssemblyReference.cache
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.GeneratedMSBuildEditorConfig.editorconfig
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.AssemblyInfoInputs.cache
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.AssemblyInfo.cs
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.csproj.CoreCompileInputs.cache
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.csproj.CopyComplete
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\ref\StfKit.Pdf.dll
+T:\Kseniia Umrykhina\ki\Formular\StfKit\src\StfKit.Pdf\obj\Release\net5.0\StfKit.Pdf.pdb

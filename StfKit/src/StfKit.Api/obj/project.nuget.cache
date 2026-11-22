@@ -1,0 +1,15 @@
+{
+  "version": 2,
+  "dgSpecHash": "6OzGdBln3sryVsLBDYA6B4fGqTCndQgnw68jveuT6prPenuP0mRKJ5m7dYpAmcXIBALzhbJNJnxx7RxVla/BDw==",
+  "success": true,
+  "projectFilePath": "T:\\Kseniia Umrykhina\\ki\\Formular\\StfKit\\src\\StfKit.Api\\StfKit.Api.csproj",
+  "expectedPackageFiles": [
+    "\\\\nas\\transfer\\NuGetPackages\\microsoft.bcl.hashcode\\1.1.1\\microsoft.bcl.hashcode.1.1.1.nupkg.sha512",
+    "\\\\nas\\transfer\\NuGetPackages\\microsoft.netcore.platforms\\5.0.0\\microsoft.netcore.platforms.5.0.0.nupkg.sha512",
+    "\\\\nas\\transfer\\NuGetPackages\\microsoft.win32.systemevents\\5.0.0\\microsoft.win32.systemevents.5.0.0.nupkg.sha512",
+    "\\\\nas\\transfer\\NuGetPackages\\pdfpig\\0.1.9\\pdfpig.0.1.9.nupkg.sha512",
+    "\\\\nas\\transfer\\NuGetPackages\\system.drawing.common\\5.0.3\\system.drawing.common.5.0.3.nupkg.sha512",
+    "\\\\nas\\transfer\\NuGetPackages\\system.memory\\4.5.5\\system.memory.4.5.5.nupkg.sha512"
+  ],
+  "logs": []
+}

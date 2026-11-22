@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <LangVersion>9.0</LangVersion>
+    <AssemblyName>StfKit</AssemblyName>
+    <UseAppHost>true</UseAppHost>
+    <WithPdf Condition="'$(WithPdf)'==''">true</WithPdf>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(WithPdf)'=='true'">
+    <DefineConstants>$(DefineConstants);PDF</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../StfKit.Core/StfKit.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(WithPdf)'=='true'">
+    <ProjectReference Include="../StfKit.Pdf/StfKit.Pdf.csproj" />
+  </ItemGroup>
+</Project>
